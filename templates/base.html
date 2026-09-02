@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ APP_NAME }} · {{ APP_BADGE }}{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/mt.css' %}?v=4">
+</head>
+<body>
+  <header class="site-head">
+    <a class="wordmark" href="{% url 'home' %}">
+      <span class="en">{{ APP_NAME }}</span>
+      <span class="dot"></span>
+      <span class="badge">{{ APP_BADGE }}</span>
+    </a>
+    <nav>
+      <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-on{% endif %}">خانه</a>
+      <a href="{% url 'product_list' %}" class="{% if request.resolver_match.url_name == 'product_list' %}is-on{% endif %}">کاتالوگ</a>
+      <a href="{% url 'rival_list' %}" class="{% if request.resolver_match.url_name == 'rival_list' %}is-on{% endif %}">قفسهٔ رقیب</a>
+      <a href="{% url 'compare_hub' %}" class="{% if request.resolver_match.url_name == 'compare_hub' %}is-on{% endif %}">تطبیق دستی</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-foot">
+    <span>{{ APP_NAME }}</span>
+    <span>{{ APP_BADGE }}</span>
+    <span>{{ STORE_NAME }}</span>
+  </footer>
+  <script>
+    (function () {
+      var box = document.getElementById("crawl-box");
+      if (!box) return;
+      var url = box.getAttribute("data-status-url");
+      var state = document.getElementById("crawl-state");
+      var line = document.getElementById("crawl-line");
+      var wasRunning = {% if crawl.running %}true{% else %}false{% endif %};
+      function tick() {
+        fetch(url, { headers: { Accept: "application/json" } })
+          .then(function (r) { return r.json(); })
+          .then(function (s) {
+            if (state) state.textContent = s.running ? "در حال اجرا" : "متوقف";
+            if (line && s.last_line) line.textContent = s.last_line;
+            if (s.running !== wasRunning) location.reload();
+            wasRunning = s.running;
+          })
+          .catch(function () {});
+      }
+      setInterval(tick, 4000);
+    })();
+  </script>
+</body>
+</html>

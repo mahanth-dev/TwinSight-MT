@@ -1,0 +1,37 @@
+<div class="crawl-box" id="crawl-box" data-status-url="{% url 'crawl_status' %}">
+  <div class="crawl-head">
+    <h2>کراول رقیب</h2>
+    <p id="crawl-state">{% if crawl.running %}در حال اجرا{% else %}متوقف{% endif %}</p>
+  </div>
+  <p class="lede" id="crawl-line">
+    {% if crawl.last_line %}{{ crawl.last_line }}{% else %}وقتی بزنی، با محصول‌های خودمان می‌رود سراغ فروشگاه‌ها و بازارها. پیش‌فرض سبک است تا سیستم قفل نشود.{% endif %}
+  </p>
+
+  {% if crawl.running %}
+    <form method="post" action="{% url 'crawl_stop' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <button class="btn danger" type="submit">قطع کراول</button>
+    </form>
+  {% else %}
+    <form class="crawl-form" method="post" action="{% url 'crawl_start' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'rival_list' %}?verdict=all">
+      <select name="family">
+        <option value="">همهٔ خانواده‌ها</option>
+        {% for f in families %}
+          <option value="{{ f.family }}">{{ f.family_label }} ({{ f.n }})</option>
+        {% endfor %}
+      </select>
+      <input type="number" name="limit" min="1" max="500" placeholder="سقف محصول (خالی = همه)">
+      <select name="workers">
+        <option value="1">۱ کارگر — خیلی سبک</option>
+        <option value="2" selected>۲ کارگر — پیشنهادی</option>
+        <option value="3">۳ کارگر</option>
+      </select>
+      <label class="chk"><input type="checkbox" name="loose" value="1" checked> حساسیت کم (شبیه هم بیاید)</label>
+      <label class="chk"><input type="checkbox" name="skip_done" value="1" checked> کالاهایی که نتیجه دارند را رد کن</label>
+      <button class="btn" type="submit">شروع کراول</button>
+    </form>
+  {% endif %}
+</div>

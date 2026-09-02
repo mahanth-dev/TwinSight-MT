@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load fmt %}
+{% block title %}Catalog · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<p class="kicker">Catalog</p>
+<h1 class="page-title">کاتالوگ</h1>
+<p class="lede">{{ count }} کالا با فیلتر فعلی. عکس‌ها بریده نمی‌شوند تا شکل واقعی محصول دیده شود.</p>
+
+<form class="toolbar" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="نام، SKU، دسته، شناسه">
+  <select name="status">
+    <option value="publish" {% if status == "publish" %}selected{% endif %}>منتشرشده</option>
+    <option value="all" {% if status == "all" %}selected{% endif %}>همه وضعیت‌ها</option>
+    <option value="draft" {% if status == "draft" %}selected{% endif %}>پیش‌نویس</option>
+    <option value="private" {% if status == "private" %}selected{% endif %}>خصوصی</option>
+    <option value="trash" {% if status == "trash" %}selected{% endif %}>زباله</option>
+  </select>
+  <select name="family">
+    <option value="">خانواده</option>
+    {% for f in families %}
+      <option value="{{ f.family }}" {% if family == f.family %}selected{% endif %}>{{ f.family_label }} ({{ f.n }})</option>
+    {% endfor %}
+  </select>
+  <select name="type">
+    <option value="">نوع</option>
+    <option value="simple" {% if ptype == "simple" %}selected{% endif %}>ساده</option>
+    <option value="variable" {% if ptype == "variable" %}selected{% endif %}>متغیر</option>
+  </select>
+  <select name="stock">
+    <option value="">موجودی</option>
+    <option value="instock" {% if stock == "instock" %}selected{% endif %}>موجود</option>
+    <option value="outofstock" {% if stock == "outofstock" %}selected{% endif %}>ناموجود</option>
+  </select>
+  <button class="btn" type="submit">نمایش</button>
+</form>
+
+<div class="grid">
+  {% for p in products %}
+    <a class="card" href="{% url 'product_detail' p.wp_id %}">
+      <div class="ph">
+        {% if p.featured %}
+          <img src="{% url 'media_image' p.featured.id %}" alt="">
+        {% else %}
+          <span class="noimg">بدون عکس</span>
+        {% endif %}
+      </div>
+      <h3>{{ p.name }}</h3>
+      <p class="sub">{{ p.family_label }} · {{ p.product_type|type_fa }}</p>
+      <p class="price">
+        {% if p.price %}{{ p.price|irt }}{% if p.price_max and p.price_max != p.price %} – {{ p.price_max|irt }}{% endif %}{% else %}—{% endif %}
+      </p>
+      <span class="tag {{ p.stock }}">{{ p.stock|stock_fa }}</span>
+    </a>
+  {% empty %}
+    <p class="lede">با این فیلتر کالایی نیست.</p>
+  {% endfor %}
+</div>
+{% endblock %}

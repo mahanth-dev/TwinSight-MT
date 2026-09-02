@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load fmt %}
+{% block title %}Rivals · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<p class="kicker">Rivals</p>
+<h1 class="page-title">قفسهٔ رقیب</h1>
+<p class="lede">
+  هر ردیف یک کالای رقیب است که با محصول خودمان به‌عنوان مرجع پیدا شده.
+  «همان کالا» یعنی عکس و عنوان هر دو تأیید کرده‌اند؛ «شبیه» یعنی از همان جنس
+  است و فقط برای دیدن قیمت بازار نگه داشته شده.
+</p>
+
+<div class="metrics">
+  <div class="ok"><b>{{ total_match }}</b><span>همان کالا</span></div>
+  <div><b>{{ total_uncertain }}</b><span>شبیه</span></div>
+  <div><b>{{ covered }}</b><span>محصول ما با نتیجه</span></div>
+  <div><b>{{ shops|length }}</b><span>منبع</span></div>
+</div>
+
+{% include "tahlil/_crawl_box.html" %}
+
+<nav class="tabs">
+  <a class="{% if verdict == 'all' %}is-on{% endif %}" href="?verdict=all">همه ({{ total_rows }})</a>
+  <a class="{% if verdict == 'match' %}is-on{% endif %}" href="?verdict=match">همان کالا ({{ total_match }})</a>
+  <a class="{% if verdict == 'uncertain' %}is-on{% endif %}" href="?verdict=uncertain">شبیه ({{ total_uncertain }})</a>
+  <a class="{% if cheaper %}is-on{% endif %}" href="?verdict=all&amp;cheaper=1">ارزان‌تر از ما</a>
+</nav>
+
+<form class="toolbar" method="get">
+  <input type="search" name="q" value="{{ q }}" placeholder="نام کالای ما یا رقیب">
+  <select name="verdict">
+    <option value="match" {% if verdict == "match" %}selected{% endif %}>فقط match</option>
+    <option value="uncertain" {% if verdict == "uncertain" %}selected{% endif %}>فقط شبیه</option>
+    <option value="all" {% if verdict == "all" %}selected{% endif %}>همه</option>
+  </select>
+  <select name="shop">
+    <option value="">همه فروشگاه‌ها</option>
+    {% for s in shops %}
+      <option value="{{ s.shop_host }}" {% if shop == s.shop_host %}selected{% endif %}>{{ s.shop_name|default:s.shop_host }} ({{ s.n }})</option>
+    {% endfor %}
+  </select>
+  <select name="cheaper">
+    <option value="">هر قیمتی</option>
+    <option value="1" {% if cheaper %}selected{% endif %}>ارزان‌تر از ما</option>
+  </select>
+  <button class="btn" type="submit">نمایش</button>
+</form>
+
+<p class="lede">
+  {{ count }} ردیف نمایش داده شده{% if count == 400 %} (۴۰۰ تای اول){% endif %}.
+  صفحه را تازه کن تا ردیف‌های تازه‌ی کراول بیایند.
+</p>
+
+<div class="rivals">
+  {% for r in rows %}
+    <article class="rival">
+      <a class="rv-img" href="{{ r.url }}" target="_blank" rel="noreferrer">
+        {% if r.image_path %}
+          <img src="{% url 'rival_image' r.id %}" alt="">
+        {% else %}
+          <span class="noimg">بدون عکس</span>
+        {% endif %}
+      </a>
+      <div class="rv-body">
+        <span class="tag {{ r.verdict }}">{% if r.verdict == "match" %}همان کالا{% else %}شبیه{% endif %}</span>
+        <span class="rv-shop">{{ r.shop_name|default:r.shop_host }}</span>
+        <h3><a href="{{ r.url }}" target="_blank" rel="noreferrer">{{ r.title }}</a></h3>
+        <p class="sub">مرجع ما: <a href="{% url 'product_detail' r.product.wp_id %}">{{ r.product.name }}</a></p>
+        <p class="rv-prices">
+          <span>ما {{ r.product.price|irt }}</span>
+          <span>رقیب {{ r.price|irt }}</span>
+          {% if r.cheaper_than_us %}<span class="down">ارزان‌تر</span>{% endif %}
+        </p>
+        <p class="sub">عکس {{ r.visual_score }} · عنوان {{ r.title_score }}</p>
+      </div>
+    </article>
+  {% empty %}
+    <p class="lede">با این فیلتر چیزی نیست. اگر کراول تازه شروع شده، کمی بعد ببین.</p>
+  {% endfor %}
+</div>
+{% endblock %}

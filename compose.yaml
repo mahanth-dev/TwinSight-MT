@@ -1,0 +1,9 @@
+services:
+  twinsight:
+    build: .
+    image: twinsight-mt
+    ports:
+      - "8765:8765"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

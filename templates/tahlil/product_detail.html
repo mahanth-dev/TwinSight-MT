@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load fmt %}
+{% block title %}{{ product.name }} · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<p class="crumb"><a href="{% url 'product_list' %}">کاتالوگ</a> · {{ product.wp_id }}</p>
+<div class="detail">
+  <div>
+    {% if product.featured %}
+      <div class="stage">
+        <img src="{% url 'media_image' product.featured.id %}" alt="">
+      </div>
+    {% endif %}
+    <div class="thumbs">
+      {% for img in product.images.all %}
+        <img src="{% url 'media_image' img.id %}" alt="">
+      {% endfor %}
+    </div>
+  </div>
+  <div>
+    <p class="kicker">{{ product.family_label }}</p>
+    <h1 class="page-title">{{ product.name }}</h1>
+    <p class="lede">{{ product.product_type|type_fa }} · {{ product.status }} · {{ product.stock|stock_fa }}</p>
+    <dl class="kv">
+      <dt>SKU</dt><dd>{{ product.sku|default:"—" }}</dd>
+      <dt>قیمت</dt>
+      <dd>{% if product.price %}{{ product.price|irt }}{% if product.price_max and product.price_max != product.price %} – {{ product.price_max|irt }}{% endif %}{% else %}—{% endif %}</dd>
+      <dt>دسته</dt><dd>{{ product.categories|default:"—" }}</dd>
+      {% if product.variation_count %}<dt>ورییشن</dt><dd>{{ product.variation_count }}</dd>{% endif %}
+    </dl>
+    {% if product.site_url %}
+      <p><a class="btn ghost" href="{{ product.site_url }}" target="_blank" rel="noreferrer">صفحه روی فروشگاه</a></p>
+    {% endif %}
+    <form method="post" action="{% url 'crawl_start' %}" style="margin:12px 0 0">
+      {% csrf_token %}
+      <input type="hidden" name="product_id" value="{{ product.wp_id }}">
+      <input type="hidden" name="loose" value="1">
+      <input type="hidden" name="next" value="{% url 'product_detail' product.wp_id %}">
+      <button class="btn" type="submit">رقیب همین کالا را پیدا کن</button>
+    </form>
+
+    <form class="panel" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <h2>تطبیق با رقیب</h2>
+      <p class="lede">عکس مهم‌تر از عنوان است. اگر نوع کالا نخواند، نتیجه match نمی‌شود.</p>
+      <label>لینک صفحهٔ رقیب
+        <input type="url" name="rival_url" value="{{ rival_url }}" placeholder="https://">
+      </label>
+      <label>عنوان رقیب
+        <input type="text" name="rival_title" value="{{ rival_title }}" placeholder="اگر لینک عنوان دارد لازم نیست">
+      </label>
+      <label>عکس رقیب
+        <input type="file" name="image" accept="image/*">
+      </label>
+      <div class="row-btns">
+        <button class="btn" type="submit">تطبیق</button>
+        <button class="btn ghost" type="submit" name="save" value="1">تطبیق و ذخیره</button>
+      </div>
+      {% if error %}<p class="error">{{ error }}</p>{% endif %}
+      {% if result %}
+        <div class="verdict {{ result.status }}">
+          <strong>
+            {% if result.status == "match" %}همین کالا
+            {% elif result.status == "uncertain" %}مشکوک — قطعی نیست
+            {% else %}یکی نیست{% endif %}
+          </strong>
+          <p>عکس {{ result.visual }} · عنوان {{ result.title }}</p>
+          <ul class="tiny">{% for r in result.reasons %}<li>{{ r }}</li>{% endfor %}</ul>
+        </div>
+      {% endif %}
+    </form>
+
+    {% if product.rivals.all %}
+      <div class="section-head" style="margin-top:28px">
+        <h2>همین کالا در سایت رقیب</h2>
+        <p>از کراول خودکار</p>
+      </div>
+      <div class="rivals">
+        {% for r in product.rivals.all %}
+          <article class="rival">
+            <a class="rv-img" href="{{ r.url }}" target="_blank" rel="noreferrer">
+              {% if r.image_path %}<img src="{% url 'rival_image' r.id %}" alt="">{% endif %}
+            </a>
+            <div class="rv-body">
+              <span class="tag {{ r.verdict }}">{% if r.verdict == "match" %}همان کالا{% else %}شبیه{% endif %}</span>
+              <span class="rv-shop">{{ r.shop_name|default:r.shop_host }}</span>
+              <h3><a href="{{ r.url }}" target="_blank" rel="noreferrer">{{ r.title }}</a></h3>
+              <p class="rv-prices">
+                <span>ما {{ product.price|irt }}</span>
+                <span>رقیب {{ r.price|irt }}</span>
+                {% if r.cheaper_than_us %}<span class="down">ارزان‌تر</span>{% endif %}
+              </p>
+              <p class="sub">عکس {{ r.visual_score }} · عنوان {{ r.title_score }}</p>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if product.offers.all %}
+      <div class="section-head" style="margin-top:28px">
+        <h2>ذخیره‌های قبلی</h2>
+      </div>
+      <ul class="offers">
+        {% for o in product.offers.all %}
+          <li>
+            <span class="tag {{ o.verdict }}">{{ o.verdict }}</span>
+            {{ o.source_name }}
+            {% if o.source_url %}<a href="{{ o.source_url }}">لینک</a>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

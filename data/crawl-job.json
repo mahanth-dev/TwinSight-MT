@@ -1,0 +1,17 @@
+{
+  "running": false,
+  "pid": 122895,
+  "started_at": "2026-09-01 17:47:43",
+  "ended_at": "2026-09-01 17:47:56",
+  "label": "همهٔ کاتالوگ",
+  "last_line": "متوقف شد",
+  "cmd": [
+    "crawl_rivals",
+    "--workers",
+    "1",
+    "--pause",
+    "0.4",
+    "--per-page",
+    "8"
+  ]
+}

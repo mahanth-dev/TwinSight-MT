@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ APP_NAME }} · {{ APP_BADGE }}{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="kicker">{{ APP_BADGE }}</p>
+    <h1>{{ APP_NAME }}</h1>
+    <p>
+      کاتالوگ {{ STORE_NAME }} کنار قفسهٔ رقیب. تطبیق از روی عکس محصول است؛
+      عنوان فقط برای این است که جنس غلط بالا نیاید.
+    </p>
+  </div>
+  <div class="hero-side">
+    <a class="tile" href="{% url 'product_list' %}">
+      <span>
+        <b>کاتالوگ خودمان</b>
+        <span>{{ published }} کالای منتشرشده</span>
+      </span>
+      <em>Catalog</em>
+    </a>
+    <a class="tile" href="{% url 'rival_list' %}">
+      <span>
+        <b>قفسهٔ رقیب</b>
+        <span>{{ rival_match }} تطبیق قطعی از {{ rival_shops }} فروشگاه</span>
+      </span>
+      <em>Rivals</em>
+    </a>
+  </div>
+</section>
+
+<div class="metrics">
+  <div><b>{{ published }}</b><span>منتشرشده</span></div>
+  <div><b>{{ simple }} / {{ variable }}</b><span>ساده / متغیر</span></div>
+  <div><b>{{ with_image }}</b><span>با عکس</span></div>
+  <div class="ok"><b>{{ instock }}</b><span>موجود</span></div>
+  <div class="bad"><b>{{ outofstock }}</b><span>ناموجود</span></div>
+</div>
+
+{% include "tahlil/_crawl_box.html" %}
+
+<div class="section-head">
+  <h2>خانوادهٔ کالا</h2>
+  <p>جلوی قاطی شدن نوع کالا را می‌گیرد</p>
+</div>
+<div class="chips">
+  {% for f in families %}
+    <a class="chip" href="{% url 'product_list' %}?family={{ f.family }}">
+      {{ f.family_label }} <i>{{ f.n }}</i>
+    </a>
+  {% endfor %}
+</div>
+
+{% if recent_rivals %}
+<div class="section-head">
+  <h2>آخرین تطبیق‌های قطعی</h2>
+  <p>{{ rival_covered }} محصول ما نتیجه دارد · {{ rival_uncertain }} کالای شبیه</p>
+</div>
+<div class="rivals">
+  {% for r in recent_rivals %}
+    <article class="rival">
+      <a class="rv-img" href="{{ r.url }}" target="_blank" rel="noreferrer">
+        {% if r.image_path %}<img src="{% url 'rival_image' r.id %}" alt="">{% endif %}
+      </a>
+      <div class="rv-body">
+        <span class="rv-shop">{{ r.shop_name|default:r.shop_host }}</span>
+        <h3><a href="{{ r.url }}" target="_blank" rel="noreferrer">{{ r.title }}</a></h3>
+        <p class="sub">مرجع: <a href="{% url 'product_detail' r.product.wp_id %}">{{ r.product.name }}</a></p>
+      </div>
+    </article>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

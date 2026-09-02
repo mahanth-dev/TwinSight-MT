@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load fmt %}
+{% block title %}Match · {{ APP_NAME }}{% endblock %}
+{% block content %}
+<p class="kicker">Match</p>
+<h1 class="page-title">تطبیق رقیب</h1>
+<p class="lede">
+  عکس یا لینک کالای رقیب را بگذار تا روی کاتالوگ خودمان جستجو شود.
+  ردیف ضعیف به‌عنوان «همین کالا» نمی‌آید.
+</p>
+
+<form class="panel" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <label>لینک صفحهٔ رقیب
+    <input type="url" name="rival_url" value="{{ rival_url }}" placeholder="https://">
+  </label>
+  <label>عنوان رقیب
+    <input type="text" name="rival_title" value="{{ rival_title }}">
+  </label>
+  <label>یا آپلود عکس
+    <input type="file" name="image" accept="image/*">
+  </label>
+  <div class="row-btns">
+    <button class="btn" type="submit">پیدا کردن</button>
+    <button class="btn ghost" type="submit" name="save_top" value="1">ذخیرهٔ بهترین match</button>
+  </div>
+</form>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+{% if saved %}<p class="ok">ذخیره شد برای {{ saved.product }}.</p>{% endif %}
+
+{% if ranked %}
+  <p class="lede">خانوادهٔ ورودی: {{ ranked.query_family_label }}</p>
+  <div class="section-head">
+    <h2>قطعیت قابل‌قبول</h2>
+    <p>{{ ranked.match_count }} مورد</p>
+  </div>
+  {% if ranked.matches %}
+    <div class="grid">
+      {% for m in ranked.matches %}
+        <a class="card" href="{% url 'product_detail' m.product_id %}">
+          <h3>{{ m.name }}</h3>
+          <span class="tag match">match</span>
+          <p class="sub">عکس {{ m.visual }} · عنوان {{ m.title }}</p>
+          <p class="price">{{ m.price|irt }}</p>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="lede">هیچ کالایی با اطمینان کافی جور نشد.</p>
+  {% endif %}
+
+  {% if ranked.uncertain %}
+    <div class="section-head">
+      <h2>مشکوک</h2>
+      <p>{{ ranked.uncertain_count }} مورد — تأیید دستی</p>
+    </div>
+    <div class="grid">
+      {% for m in ranked.uncertain %}
+        <a class="card" href="{% url 'product_detail' m.product_id %}">
+          <h3>{{ m.name }}</h3>
+          <span class="tag uncertain">uncertain</span>
+          <p class="sub">عکس {{ m.visual }} · عنوان {{ m.title }}</p>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}
