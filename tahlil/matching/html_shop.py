@@ -90,6 +90,12 @@ HTML_SHOPS: tuple[HtmlShop, ...] = (
         "https://allsport.ir/search?controller=search&s={q}",
         r"^https?://(?:www\.)?allsport\.ir/[^/]+/\d+-[^/]+\.html$",
     ),
+    HtmlShop(
+        "iransporter.com",
+        "ایران اسپورتر",
+        "https://www.iransporter.com/search/1/{q}.aspx",
+        r"^https?://(?:www\.)?iransporter\.com/product/\d+-\d+/[^/?#]+\.aspx$",
+    ),
 )
 
 HTML_SHOPS_BY_HOST = {s.host: s for s in HTML_SHOPS}

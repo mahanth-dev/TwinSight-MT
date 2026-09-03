@@ -1,9 +1,9 @@
 {
   "running": false,
-  "pid": 122895,
-  "started_at": "2026-09-01 17:47:43",
-  "ended_at": "2026-09-01 17:47:56",
-  "label": "همهٔ کاتالوگ",
+  "pid": 39318,
+  "started_at": "2026-09-03 11:44:40",
+  "ended_at": "2026-09-03 11:49:09",
+  "label": "سفارشی · apparel-set · حساسیت کم · فقط بدون نتیجه",
   "last_line": "متوقف شد",
   "cmd": [
     "crawl_rivals",
@@ -12,6 +12,12 @@
     "--pause",
     "0.4",
     "--per-page",
-    "8"
+    "8",
+    "--limit",
+    "20",
+    "--family",
+    "apparel-set",
+    "--loose",
+    "--skip-done"
   ]
 }

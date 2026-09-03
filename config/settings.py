@@ -89,3 +89,5 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8765",
     "http://127.0.0.1:8765",
 ]
+LOGIN_URL = "/admin/login/"
+LOGIN_REDIRECT_URL = "/manage/"

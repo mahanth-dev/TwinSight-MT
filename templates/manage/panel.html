@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% block title %}مدیریت · {{ APP_NAME }}{% endblock %}
+{% block extra_js %}
+<script>
+  (function () {
+    var box = document.getElementById("crawl-box");
+    if (!box) return;
+    var url = box.getAttribute("data-status-url");
+    var state = document.getElementById("crawl-state");
+    var line = document.getElementById("crawl-line");
+    var logEl = document.getElementById("crawl-log");
+    var startForm = document.getElementById("crawl-start-form");
+    var stopForm = document.getElementById("crawl-stop-form");
+    var feedEl = document.getElementById("crawl-feed");
+    var reportEl = document.getElementById("crawl-report");
+    var hitsEl = document.getElementById("crawl-hits");
+    var wasRunning = {% if crawl.running %}true{% else %}false{% endif %};
+    function show(running, stopping) {
+      if (state) {
+        state.textContent = stopping ? "در حال توقف" : (running ? "در حال اجرا" : "متوقف");
+      }
+      if (startForm) startForm.hidden = running || stopping;
+      if (stopForm) stopForm.hidden = !(running || stopping);
+    }
+    function esc(s) {
+      return String(s || "").replace(/[&<>"]/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+      });
+    }
+    function renderFeed(events) {
+      if (!feedEl) return;
+      if (!events || !events.length) {
+        feedEl.textContent = "هنوز خروجی این جاب نیامده.";
+        return;
+      }
+      feedEl.innerHTML = events.slice().reverse().slice(0, 40).map(function (e) {
+        if (e.kind === "start") return "<li><i>" + esc(e.t) + "</i> شروع · " + esc(e.hosts) + "</li>";
+        if (e.kind === "search") return "<li><i>" + esc(e.t) + "</i> دارم می‌گردم: <b>" + esc(e.our) + "</b></li>";
+        if (e.kind === "hit") {
+          var tag = e.verdict === "match" ? "همان کالا" : "شبیه";
+          return "<li><i>" + esc(e.t) + "</i> آوردم از " + esc(e.shop) + " · " + tag + " · <a href=\"" + esc(e.url) + "\" target=\"_blank\" rel=\"noreferrer\">" + esc(e.title) + "</a> ← " + esc(e.our) + "</li>";
+        }
+        if (e.kind === "done") return "<li><i>" + esc(e.t) + "</i> تمام · match " + esc(e.match) + " / شبیه " + esc(e.uncertain) + "</li>";
+        return "<li><i>" + esc(e.t) + "</i> " + esc(e.kind) + "</li>";
+      }).join("");
+    }
+    function renderReport(r) {
+      if (reportEl) reportEl.textContent = (r && r.summary) ? r.summary : "بعد از قطع یا اتمام جاب، خلاصه این‌جا می‌آید.";
+      if (!hitsEl) return;
+      var rows = (r && r.hits) ? r.hits : [];
+      if (!rows.length) {
+        hitsEl.innerHTML = "";
+        return;
+      }
+      hitsEl.innerHTML = rows.slice().reverse().map(function (h) {
+        return "<li>" + esc(h.shop) + " · <a href=\"" + esc(h.url) + "\" target=\"_blank\" rel=\"noreferrer\">" + esc(h.title) + "</a> <span class=\"sub\">" + (h.verdict === "match" ? "همان کالا" : "شبیه") + " · ما: " + esc(h.our) + "</span></li>";
+      }).join("");
+    }
+    function tick() {
+      fetch(url, { headers: { Accept: "application/json" }, credentials: "same-origin" })
+        .then(function (r) { return r.json(); })
+        .then(function (s) {
+          var running = !!s.running;
+          var stopping = !!s.stopping;
+          show(running, stopping);
+          if (line && s.last_line) line.textContent = s.last_line;
+          if (logEl && typeof s.log === "string") logEl.textContent = s.log || "هنوز لاگی نیست.";
+          renderFeed(s.events);
+          renderReport(s.report);
+          if (running !== wasRunning && !stopping) location.reload();
+          wasRunning = running;
+        })
+        .catch(function () {});
+    }
+    show(wasRunning, false);
+    var bootEvents = document.getElementById("boot-events");
+    var bootReport = document.getElementById("boot-report");
+    if (bootEvents) renderFeed(JSON.parse(bootEvents.textContent));
+    if (bootReport) renderReport(JSON.parse(bootReport.textContent));
+    tick();
+    setInterval(tick, 2000);
+  })();
+</script>
+{% endblock %}
+{% block content %}
+<p class="kicker">Staff</p>
+<h1 class="page-title">مدیریت</h1>
+<p class="lede">{{ APP_SLOGAN }}</p>
+
+<div class="metrics">
+  <div><b>{{ crawl.running|yesno:"روشن,خاموش" }}</b><span>کراول</span></div>
+  <div><b>{{ rival_count }}</b><span>ردیف رقیب ذخیره‌شده</span></div>
+  <div><b>{% if catalog_test %}{% if catalog_test.ok %}قبول{% else %}رد{% endif %}{% else %}—{% endif %}</b><span>تست کاتالوگ</span></div>
+  <div><b>{% if crawl_test %}{% if crawl_test.ok %}قبول{% else %}رد{% endif %}{% else %}—{% endif %}</b><span>تست کراول</span></div>
+</div>
+
+<div class="crawl-box" id="crawl-box" data-status-url="{% url 'crawl_status' %}">
+  <div class="crawl-head">
+    <h2>کراول رقیب</h2>
+    <p id="crawl-state">{% if crawl.running %}در حال اجرا{% else %}متوقف{% endif %}</p>
+  </div>
+  <p class="lede" id="crawl-line">
+    {% if crawl.last_line %}{{ crawl.last_line }}{% else %}با محصول‌های خودمان می‌رود سراغ فروشگاه‌ها. سقف پیش‌فرض ۲۰ کالا و ۱ کارگر است.{% endif %}
+  </p>
+  {% if crawl.label %}<p class="sub">{{ crawl.label }}{% if crawl.started_at %} · از {{ crawl.started_at }}{% endif %}</p>{% endif %}
+
+  <form id="crawl-stop-form" method="post" action="{% url 'crawl_stop' %}" {% if not crawl.running %}hidden{% endif %}>
+    {% csrf_token %}
+    <button class="btn danger" type="submit">قطع کراول</button>
+  </form>
+  <form id="crawl-start-form" class="crawl-start" method="post" action="{% url 'crawl_start' %}" {% if crawl.running %}hidden{% endif %}>
+    {% csrf_token %}
+    <p class="kicker">حالت آماده</p>
+    <div class="mode-list">
+      {% for key, p in presets.items %}
+        <button class="mode-btn" type="submit" name="preset" value="{{ key }}">
+          <b>{{ p.label }}</b>
+          <span>{{ p.blurb }}</span>
+        </button>
+      {% endfor %}
+    </div>
+
+    <p class="kicker">سفارشی</p>
+    <div class="crawl-form">
+      <select name="family">
+        <option value="">همهٔ خانواده‌ها</option>
+        {% for f in families %}
+          <option value="{{ f.family }}">{{ f.family_label }} ({{ f.n }})</option>
+        {% endfor %}
+      </select>
+      <input type="number" name="limit" min="1" max="80" placeholder="سقف محصول (خالی = ۲۰)">
+      <select name="workers">
+        <option value="1" selected>۱ کارگر — سبک</option>
+        <option value="2">۲ کارگر</option>
+      </select>
+      <input type="number" name="per_page" min="4" max="12" value="8" title="کاندید در هر فروشگاه">
+      <label class="chk"><input type="checkbox" name="loose" value="1" checked> حساسیت کم (شبیه هم بیاید)</label>
+      <label class="chk"><input type="checkbox" name="skip_done" value="1" checked> کالاهای دارای نتیجه را رد کن</label>
+      <button class="btn" type="submit" name="preset" value="custom">شروع سفارشی</button>
+    </div>
+    <p class="lede">منبع‌ها — اگر همه را بگذاری یعنی همهٔ فروشگاه‌ها و بازارها.</p>
+    {% for g in source_groups %}
+      <p class="sub"><b>{{ g.title }}</b></p>
+      <div class="src-checks">
+        {% for item in g.items %}
+          <label class="chk"><input type="checkbox" name="shop" value="{{ item.host }}" checked> {{ item.name }}</label>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </form>
+
+  <pre class="crawl-log" id="crawl-log">{% if log_text %}{{ log_text }}{% else %}هنوز لاگی نیست.{% endif %}</pre>
+
+  {{ crawl_events|json_script:"boot-events" }}
+  {{ crawl_report|json_script:"boot-report" }}
+
+  <div class="section-head">
+    <h2>خروجی این جاب</h2>
+    <p>زنده می‌بینم کجا می‌گردد؛ آخر کار خلاصه می‌گوید چه آورد.</p>
+  </div>
+  <p class="lede" id="crawl-report">{% if crawl_report.summary %}{{ crawl_report.summary }}{% else %}هنوز خلاصه‌ای نیست. بعد از شروع یا قطع، این‌جا پر می‌شود.{% endif %}</p>
+  <ul class="crawl-feed" id="crawl-feed"></ul>
+  <ul class="crawl-hits" id="crawl-hits"></ul>
+</div>
+
+<div class="section-head">
+  <h2>کراولرها چطور کار می‌کنند</h2>
+  <p>مرجع همیشه کالای خودمان است. اول عکس، بعد خانواده، بعد عنوان.</p>
+</div>
+{% for g in source_groups %}
+  <section class="src-block">
+    <h3>{{ g.title }}</h3>
+    <p class="lede">{{ g.blurb }}</p>
+    <p class="sub">{% for item in g.items %}{{ item.name }} <i>{{ item.host }}</i>{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+  </section>
+{% endfor %}
+
+<div class="section-head">
+  <h2>یک کالا</h2>
+  <p>اگر فقط یک محصول را می‌خواهی کراول کنی</p>
+</div>
+<form class="toolbar" method="get" action="{% url 'manage_panel' %}">
+  <input type="search" name="q" value="{{ q }}" placeholder="نام محصول خودمان">
+  <button class="btn" type="submit">جستجو</button>
+</form>
+{% if hits %}
+  <ul class="offers">
+    {% for p in hits %}
+      <li>
+        <span>{{ p.name }}</span>
+        <form method="post" action="{% url 'crawl_start' %}">
+          {% csrf_token %}
+          <input type="hidden" name="product_id" value="{{ p.wp_id }}">
+          <input type="hidden" name="preset" value="custom">
+          <input type="hidden" name="loose" value="1">
+          <button class="btn" type="submit" {% if crawl.running %}disabled{% endif %}>کراول همین</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<div class="section-head" id="tests">
+  <h2>دو تست نهایی</h2>
+  <p>قبل از کراول سنگین، هر دو را بزن. تست ۲ یک درخواست زنده به فروشگاه می‌زند.</p>
+</div>
+
+<div class="test-grid">
+  <section class="test-card" id="test-catalog">
+    <h3>تست ۱ — کاتالوگ و عکس خودمان</h3>
+    <p class="lede">صفحات عمومی، فایل عکس روی دیسک، سرو /media/img، حذف کراول از چشم کاربر، قفل بودن پنل بدون لاگین.</p>
+    <form method="post" action="{% url 'manage_run_test' %}">
+      {% csrf_token %}
+      <input type="hidden" name="which" value="catalog">
+      <button class="btn" type="submit">اجرای تست ۱</button>
+    </form>
+    {% if catalog_test %}
+      <p class="{% if catalog_test.ok %}ok{% else %}error{% endif %}">
+        {% if catalog_test.ok %}قبول{% else %}رد{% endif %} · {{ catalog_test.ran_at }}
+      </p>
+      <ul class="tiny">
+        {% for s in catalog_test.steps %}
+          <li class="{% if s.ok %}ok{% else %}error{% endif %}">{{ s.name }} — {{ s.detail }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+
+  <section class="test-card" id="test-crawl">
+    <h3>تست ۲ — مسیر زنده کراول</h3>
+    <p class="lede">وضعیت جاب، redirect لاگین، query، API فروشگاه، لینک صفحه رقیب، استخراج عکس و تطبیق با کالای ما.</p>
+    <form method="post" action="{% url 'manage_run_test' %}">
+      {% csrf_token %}
+      <input type="hidden" name="which" value="crawl">
+      <button class="btn" type="submit">اجرای تست ۲</button>
+    </form>
+    {% if crawl_test %}
+      <p class="{% if crawl_test.ok %}ok{% else %}error{% endif %}">
+        {% if crawl_test.ok %}قبول{% else %}رد{% endif %} · {{ crawl_test.ran_at }}
+      </p>
+      <ul class="tiny">
+        {% for s in crawl_test.steps %}
+          <li class="{% if s.ok %}ok{% else %}error{% endif %}">{{ s.name }} — {{ s.detail }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -4,12 +4,10 @@ from pathlib import Path
 
 from django.conf import settings
 from django.db.models import Count, Q
-from django.http import FileResponse, Http404, HttpRequest, HttpResponse, JsonResponse
+from django.http import FileResponse, Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from tahlil import crawler_job
 from tahlil.matching.fetch_page import fetch_bytes, parse_competitor_page
 from tahlil.matching.fingerprint import fingerprint_bytes
 from tahlil.matching.match import compare_pair, rank_catalog
@@ -62,7 +60,6 @@ def home(request: HttpRequest) -> HttpResponse:
             "recent_rivals": RivalProduct.objects.select_related("product").filter(
                 verdict="match"
             )[:6],
-            "crawl": crawler_job.status(),
         },
     )
 
@@ -232,6 +229,7 @@ def rival_list(request: HttpRequest) -> HttpResponse:
     verdict = request.GET.get("verdict") or "match"
     shop = (request.GET.get("shop") or "").strip()
     q = (request.GET.get("q") or "").strip()
+    family = (request.GET.get("family") or "").strip()
     cheaper = request.GET.get("cheaper") == "1"
 
     qs = RivalProduct.objects.select_related("product")
@@ -239,6 +237,8 @@ def rival_list(request: HttpRequest) -> HttpResponse:
         qs = qs.filter(verdict=verdict)
     if shop:
         qs = qs.filter(shop_host=shop)
+    if family:
+        qs = qs.filter(product__family=family)
     if q:
         qs = qs.filter(Q(title__icontains=q) | Q(product__name__icontains=q))
     qs = qs.order_by("verdict", "-visual_score", "-title_score")
@@ -252,6 +252,11 @@ def rival_list(request: HttpRequest) -> HttpResponse:
         .annotate(n=Count("id"))
         .order_by("-n")
     )
+    rival_families = (
+        RivalProduct.objects.values("product__family", "product__family_label")
+        .annotate(n=Count("id"))
+        .order_by("product__family_label")
+    )
     return render(
         request,
         "tahlil/rival_list.html",
@@ -262,59 +267,15 @@ def rival_list(request: HttpRequest) -> HttpResponse:
             "verdict": verdict,
             "shop": shop,
             "q": q,
+            "family": family,
             "cheaper": cheaper,
             "shops": shops,
+            "rival_families": rival_families,
             "total_match": RivalProduct.objects.filter(verdict="match").count(),
             "total_uncertain": RivalProduct.objects.filter(verdict="uncertain").count(),
             "covered": RivalProduct.objects.values("product").distinct().count(),
-            "crawl": crawler_job.status(),
-            "families": Product.objects.filter(status="publish")
-            .values("family", "family_label")
-            .annotate(n=Count("id"))
-            .order_by("family_label"),
         },
     )
-
-
-@require_POST
-def crawl_start(request: HttpRequest) -> HttpResponse:
-    limit = request.POST.get("limit") or ""
-    workers = request.POST.get("workers") or "2"
-    try:
-        limit_n = int(limit) if limit.strip() else 0
-    except ValueError:
-        limit_n = 0
-    try:
-        workers_n = max(1, min(4, int(workers)))
-    except ValueError:
-        workers_n = 2
-    product_id = (request.POST.get("product_id") or "").strip()
-    if not product_id and not limit_n:
-        limit_n = 500
-    crawler_job.start(
-        {
-            "loose": request.POST.get("loose") == "1",
-            "skip_done": request.POST.get("skip_done") == "1",
-            "family": (request.POST.get("family") or "").strip(),
-            "product_id": product_id,
-            "limit": limit_n,
-            "workers": workers_n,
-        }
-    )
-    nxt = request.POST.get("next") or reverse("rival_list")
-    return redirect(nxt)
-
-
-@require_POST
-def crawl_stop(request: HttpRequest) -> HttpResponse:
-    crawler_job.stop()
-    nxt = request.POST.get("next") or reverse("rival_list")
-    return redirect(nxt)
-
-
-@require_GET
-def crawl_status(request: HttpRequest) -> JsonResponse:
-    return JsonResponse(crawler_job.status())
 
 
 @require_GET

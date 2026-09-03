@@ -30,13 +30,6 @@
     {% if product.site_url %}
       <p><a class="btn ghost" href="{{ product.site_url }}" target="_blank" rel="noreferrer">صفحه روی فروشگاه</a></p>
     {% endif %}
-    <form method="post" action="{% url 'crawl_start' %}" style="margin:12px 0 0">
-      {% csrf_token %}
-      <input type="hidden" name="product_id" value="{{ product.wp_id }}">
-      <input type="hidden" name="loose" value="1">
-      <input type="hidden" name="next" value="{% url 'product_detail' product.wp_id %}">
-      <button class="btn" type="submit">رقیب همین کالا را پیدا کن</button>
-    </form>
 
     <form class="panel" method="post" enctype="multipart/form-data">
       {% csrf_token %}

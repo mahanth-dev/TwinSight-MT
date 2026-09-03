@@ -24,6 +24,7 @@ from tahlil.matching.rivals import (
     collect_all_candidates,
     fetch_image,
 )
+from tahlil.crawler_job import emit, stop_requested
 from tahlil.models import Product, RivalProduct
 
 CACHE_DIRNAME = "rival-cache"
@@ -57,6 +58,9 @@ def _work(
 ):
     """Network + hashing only. No ORM here so SQLite stays single-writer."""
     results: list[tuple[Candidate, dict, bytes]] = []
+    if stop_requested():
+        return reference["id"], queries, results
+    emit("search", our=reference.get("name") or str(reference.get("id")), wp_id=reference.get("id"))
     candidates = collect_all_candidates(
         queries,
         shops=shops,
@@ -68,6 +72,8 @@ def _work(
         max_candidates=60 if loose else 30,
     )
     for cand in candidates:
+        if stop_requested():
+            break
         try:
             blob = fetch_image(cand.image_url)
             fp = fingerprint_bytes(blob)
@@ -167,11 +173,14 @@ class Command(BaseCommand):
             f"جستجو برای {len(jobs)} محصول در {len(hosts)} منبع [{mode}]: "
             + ", ".join(hosts)
         )
+        emit("start", hosts=", ".join(hosts), our=len(jobs), mode=mode)
 
         by_wp = {p.wp_id: p for p in products}
         total_match = total_uncertain = 0
+        stopped = False
 
-        with futures.ThreadPoolExecutor(max_workers=opts["workers"]) as pool:
+        pool = futures.ThreadPoolExecutor(max_workers=opts["workers"])
+        try:
             pending = [
                 pool.submit(
                     _work,
@@ -187,6 +196,10 @@ class Command(BaseCommand):
                 for reference, queries in jobs
             ]
             for done in futures.as_completed(pending):
+                if stop_requested():
+                    stopped = True
+                    self.stdout.write("توقف از پنل.")
+                    break
                 try:
                     wp_id, queries, results = done.result()
                 except Exception as exc:
@@ -224,6 +237,16 @@ class Command(BaseCommand):
                             saved_match += 1
                         else:
                             saved_uncertain += 1
+                        emit(
+                            "hit",
+                            shop=cand.shop_name or cand.shop_host,
+                            host=cand.shop_host,
+                            title=cand.title[:90],
+                            url=cand.url,
+                            verdict=verdict["status"],
+                            our=product.name[:50],
+                            price=cand.price,
+                        )
 
                 total_match += saved_match
                 total_uncertain += saved_uncertain
@@ -232,6 +255,13 @@ class Command(BaseCommand):
                         f"  {product.wp_id} {product.name[:44]} → "
                         f"match {saved_match} / شبیه {saved_uncertain}"
                     )
+        finally:
+            pool.shutdown(wait=False, cancel_futures=True)
+
+        if stopped or stop_requested():
+            self.stdout.write("کراول قطع شد.")
+            emit("done", match=total_match, uncertain=total_uncertain, stopped=True)
+            return
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -239,3 +269,4 @@ class Command(BaseCommand):
                 f"روی {len(jobs)} محصول"
             )
         )
+        emit("done", match=total_match, uncertain=total_uncertain, stopped=False)

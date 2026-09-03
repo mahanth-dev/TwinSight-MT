@@ -1,0 +1,112 @@
+{
+  "hosts_line": "gishasport.com, takrazm.com, pooyasport.com, topsportgym.com, kalavarzesh.com, onesport.ir, safirsport.com, shahrevarzesh.com, sportbazan.com, anik.ir (صفحه), allsport.ir (صفحه), iransporter.com (صفحه), digikala.com (بازار), basalam.com (بازار)",
+  "searched": 4,
+  "brought": 9,
+  "match": 0,
+  "uncertain": 9,
+  "by_shop": {
+    "باسلام": 9
+  },
+  "hits": [
+    {
+      "t": "11:46:12",
+      "kind": "hit",
+      "shop": "باسلام",
+      "host": "basalam.com",
+      "title": "پیراهن شورت باشگاهی",
+      "url": "https://basalam.com/p/41947542",
+      "verdict": "uncertain",
+      "our": "ست پیراهن و شورت ALA مدل 431",
+      "price": "350000"
+    },
+    {
+      "t": "11:46:12",
+      "kind": "hit",
+      "shop": "باسلام",
+      "host": "basalam.com",
+      "title": "پیراهن شورت ورزشی آدیداس",
+      "url": "https://basalam.com/p/36836053",
+      "verdict": "uncertain",
+      "our": "ست پیراهن و شورت ALA مدل 431",
+      "price": "409300"
+    },
+    {
+      "t": "11:46:12",
+      "kind": "hit",
+      "shop": "باسلام",
+      "host": "basalam.com",
+      "title": "ست پیراهن شورت فوتسال آلشپرت ALA سبز",
+      "url": "https://basalam.com/p/15549897",
+      "verdict": "uncertain",
+      "our": "ست پیراهن و شورت ALA مدل 431",
+      "price": "1269000"
+    },
+    {
+      "t": "11:46:12",
+      "kind": "hit",
+      "shop": "باسلام",
+      "host": "basalam.com",
+      "title": "پیراهن و شورت تیم پرسپولیس-کیت دوم مردانه",
+      "url": "https://basalam.com/p/46609168",
+      "verdict": "uncertain",
+      "our": "ست پیراهن و شورت ALA مدل 431",
+      "price": "675000"
+    },
+    {
+      "t": "11:46:12",
+      "kind": "hit",
+      "shop": "باسلام",
+      "host": "basalam.com",
+      "title": "پیراهن و شورت تراکتور تبریز (ست فوتبالی هواداری)",
+      "url": "https://basalam.com/p/38235265",
+      "verdict": "uncertain",
+      "our": "ست پیراهن و شورت ALA مدل 431",
+      "price": "414000"
+    },
+    {
+      "t": "11:47:38",
+      "kind": "hit",
+      "shop": "باسلام",
+      "host": "basalam.com",
+      "title": "گرمکن شلوار ورزشی مردانه اعلا ALA 435-103",
+      "url": "https://basalam.com/p/38233418",
+      "verdict": "uncertain",
+      "our": "ست گرمکن و شلوار ALA مدل 333",
+      "price": "3931000"
+    },
+    {
+      "t": "11:47:38",
+      "kind": "hit",
+      "shop": "باسلام",
+      "host": "basalam.com",
+      "title": "گرمکن شلوار ورزشی مردانه اعلا ALA 429-103",
+      "url": "https://basalam.com/p/38233417",
+      "verdict": "uncertain",
+      "our": "ست گرمکن و شلوار ALA مدل 333",
+      "price": "2951000"
+    },
+    {
+      "t": "11:48:48",
+      "kind": "hit",
+      "shop": "باسلام",
+      "host": "basalam.com",
+      "title": "گرمکن شلوار ورزشی مردانه اعلا ALA 435-103",
+      "url": "https://basalam.com/p/38233418",
+      "verdict": "uncertain",
+      "our": "ست گرمکن و شلوار ALA مدل 333",
+      "price": "3931000"
+    },
+    {
+      "t": "11:48:48",
+      "kind": "hit",
+      "shop": "باسلام",
+      "host": "basalam.com",
+      "title": "گرمکن شلوار ورزشی مردانه اعلا ALA 429-103",
+      "url": "https://basalam.com/p/38233417",
+      "verdict": "uncertain",
+      "our": "ست گرمکن و شلوار ALA مدل 333",
+      "price": "2951000"
+    }
+  ],
+  "summary": "رفتم این‌جاها: باسلام (9). 4 کالای خودمان را گشتم و 9 محصول رقیب آوردم (0 همان کالا، 9 شبیه)."
+}

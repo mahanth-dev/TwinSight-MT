@@ -1,0 +1,128 @@
+{
+  "catalog": {
+    "id": "catalog",
+    "title": "تست ۱ — کاتالوگ و عکس‌های خودمان",
+    "ok": true,
+    "ran_at": "2026-09-03 11:30:12",
+    "steps": [
+      {
+        "name": "کاتالوگ sqlite",
+        "ok": true,
+        "detail": "420 محصول منتشرشده، 1031 ردیف عکس"
+      },
+      {
+        "name": "فایل عکس روی دیسک",
+        "ok": true,
+        "detail": "40/40 موجود در /home/asus/project/asareh-new-vmt/mt-tahlil/data/uploads"
+      },
+      {
+        "name": "صفحه خانه",
+        "ok": true,
+        "detail": "HTTP 200"
+      },
+      {
+        "name": "لیست کاتالوگ",
+        "ok": true,
+        "detail": "HTTP 200"
+      },
+      {
+        "name": "صفحه محصول و لینک عکس",
+        "ok": true,
+        "detail": "HTTP 200 · ( مت یوگا ) 8 میل PVC · /media/img/1/"
+      },
+      {
+        "name": "سرو عکس کاتالوگ",
+        "ok": true,
+        "detail": "HTTP 200 · image/webp"
+      },
+      {
+        "name": "redirect اسلش عکس",
+        "ok": true,
+        "detail": "بدون اسلش → HTTP 301"
+      },
+      {
+        "name": "قفسه رقیب",
+        "ok": true,
+        "detail": "HTTP 200"
+      },
+      {
+        "name": "پنل بدون لاگین",
+        "ok": true,
+        "detail": "HTTP 302 → /admin/login/?next=/manage/"
+      },
+      {
+        "name": "کراول از صفحه کاربر حذف شده",
+        "ok": true,
+        "detail": "/rivals/crawl/start/ → HTTP 404"
+      }
+    ]
+  },
+  "crawl": {
+    "id": "crawl",
+    "title": "تست ۲ — مسیر زنده کراول",
+    "ok": true,
+    "ran_at": "2026-09-03 11:30:09",
+    "steps": [
+      {
+        "name": "وضعیت جاب کراول",
+        "ok": true,
+        "detail": "{\"running\": false, \"pid\": 0, \"label\": \"سفارشی · apparel · حساسیت کم · فقط بدون نتیجه\"}"
+      },
+      {
+        "name": "API کراول بدون لاگین",
+        "ok": true,
+        "detail": "HTTP 302 (باید redirect به login باشد)"
+      },
+      {
+        "name": "شروع کراول فقط POST",
+        "ok": true,
+        "detail": "GET /manage/crawl/start/ → HTTP 302"
+      },
+      {
+        "name": "ساخت query جستجو",
+        "ok": true,
+        "detail": "مت یوگا ؛ مت pvc"
+      },
+      {
+        "name": "اثرانگشت عکس خودمان",
+        "ok": true,
+        "detail": "dhash آماده است"
+      },
+      {
+        "name": "API فروشگاه gishasport.com",
+        "ok": true,
+        "detail": "HTTP 200 · hops بدون redirect · final https://gishasport.com/wp-json/wc/store/v1/products?per_page=1"
+      },
+      {
+        "name": "داده JSON کراول",
+        "ok": true,
+        "detail": "1 ردیف"
+      },
+      {
+        "name": "جستجوی نام محصول ما در فروشگاه",
+        "ok": true,
+        "detail": "0 کاندید برای «مت یوگا»"
+      },
+      {
+        "name": "ربط رقیب ذخیره‌شده به محصول ما",
+        "ok": true,
+        "detail": "basalam.com → توپ پینگ پنگ دونیک شیلدکروت مدل Pres · cache هست"
+      },
+      {
+        "name": "سرو عکس رقیب",
+        "ok": true,
+        "detail": "HTTP 200"
+      },
+      {
+        "name": "صفحه محصول رقیب",
+        "ok": true,
+        "detail": "کاندید زنده نبود — مرحله صفحه رد شد (شبکه/جستجو خالی)"
+      },
+      {
+        "name": "استخراج عکس و تطبیق با کالای ما",
+        "ok": true,
+        "detail": "کاندید زنده نبود — تطبیق روی داده ذخیره‌شده کافی است"
+      }
+    ]
+  }
+}

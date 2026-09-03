@@ -8,6 +8,7 @@
   هر ردیف یک کالای رقیب است که با محصول خودمان به‌عنوان مرجع پیدا شده.
   «همان کالا» یعنی عکس و عنوان هر دو تأیید کرده‌اند؛ «شبیه» یعنی از همان جنس
   است و فقط برای دیدن قیمت بازار نگه داشته شده.
+  با دسته‌بندی محصولات خودمان فیلتر کن تا ببینی در هر خانواده رقیب چه کرده.
 </p>
 
 <div class="metrics">
@@ -17,13 +18,27 @@
   <div><b>{{ shops|length }}</b><span>منبع</span></div>
 </div>
 
-{% include "tahlil/_crawl_box.html" %}
+<div class="section-head">
+  <h2>دسته‌بندی محصولات ما</h2>
+  <p>قفسهٔ رقیب را بر اساس خانوادهٔ کالای مرجع خودمان ببین</p>
+</div>
+<div class="chips">
+  <a class="chip {% if not family %}is-on{% endif %}" href="?verdict={{ verdict }}{% if shop %}&amp;shop={{ shop }}{% endif %}{% if cheaper %}&amp;cheaper=1{% endif %}{% if q %}&amp;q={{ q }}{% endif %}">
+    همه <i>{{ total_rows }}</i>
+  </a>
+  {% for f in rival_families %}
+    <a class="chip {% if family == f.product__family %}is-on{% endif %}"
+       href="?family={{ f.product__family }}&amp;verdict={{ verdict }}{% if shop %}&amp;shop={{ shop }}{% endif %}{% if cheaper %}&amp;cheaper=1{% endif %}{% if q %}&amp;q={{ q }}{% endif %}">
+      {{ f.product__family_label }} <i>{{ f.n }}</i>
+    </a>
+  {% endfor %}
+</div>
 
 <nav class="tabs">
-  <a class="{% if verdict == 'all' %}is-on{% endif %}" href="?verdict=all">همه ({{ total_rows }})</a>
-  <a class="{% if verdict == 'match' %}is-on{% endif %}" href="?verdict=match">همان کالا ({{ total_match }})</a>
-  <a class="{% if verdict == 'uncertain' %}is-on{% endif %}" href="?verdict=uncertain">شبیه ({{ total_uncertain }})</a>
-  <a class="{% if cheaper %}is-on{% endif %}" href="?verdict=all&amp;cheaper=1">ارزان‌تر از ما</a>
+  <a class="{% if verdict == 'all' %}is-on{% endif %}" href="?verdict=all{% if family %}&amp;family={{ family }}{% endif %}">همه ({{ total_rows }})</a>
+  <a class="{% if verdict == 'match' %}is-on{% endif %}" href="?verdict=match{% if family %}&amp;family={{ family }}{% endif %}">همان کالا ({{ total_match }})</a>
+  <a class="{% if verdict == 'uncertain' %}is-on{% endif %}" href="?verdict=uncertain{% if family %}&amp;family={{ family }}{% endif %}">شبیه ({{ total_uncertain }})</a>
+  <a class="{% if cheaper %}is-on{% endif %}" href="?verdict=all&amp;cheaper=1{% if family %}&amp;family={{ family }}{% endif %}">ارزان‌تر از ما</a>
 </nav>
 
 <form class="toolbar" method="get">
@@ -32,6 +47,12 @@
     <option value="match" {% if verdict == "match" %}selected{% endif %}>فقط match</option>
     <option value="uncertain" {% if verdict == "uncertain" %}selected{% endif %}>فقط شبیه</option>
     <option value="all" {% if verdict == "all" %}selected{% endif %}>همه</option>
+  </select>
+  <select name="family">
+    <option value="">همه دسته‌ها</option>
+    {% for f in rival_families %}
+      <option value="{{ f.product__family }}" {% if family == f.product__family %}selected{% endif %}>{{ f.product__family_label }} ({{ f.n }})</option>
+    {% endfor %}
   </select>
   <select name="shop">
     <option value="">همه فروشگاه‌ها</option>
@@ -47,8 +68,7 @@
 </form>
 
 <p class="lede">
-  {{ count }} ردیف نمایش داده شده{% if count == 400 %} (۴۰۰ تای اول){% endif %}.
-  صفحه را تازه کن تا ردیف‌های تازه‌ی کراول بیایند.
+  {{ count }} ردیف نمایش داده شده{% if count == 400 %} (۴۰۰ تای اول){% endif %}{% if family %} · فیلتر دسته فعال{% endif %}.
 </p>
 
 <div class="rivals">
@@ -65,7 +85,9 @@
         <span class="tag {{ r.verdict }}">{% if r.verdict == "match" %}همان کالا{% else %}شبیه{% endif %}</span>
         <span class="rv-shop">{{ r.shop_name|default:r.shop_host }}</span>
         <h3><a href="{{ r.url }}" target="_blank" rel="noreferrer">{{ r.title }}</a></h3>
-        <p class="sub">مرجع ما: <a href="{% url 'product_detail' r.product.wp_id %}">{{ r.product.name }}</a></p>
+        <p class="sub">مرجع ما: <a href="{% url 'product_detail' r.product.wp_id %}">{{ r.product.name }}</a>
+          {% if r.product.family_label %} · {{ r.product.family_label }}{% endif %}
+        </p>
         <p class="rv-prices">
           <span>ما {{ r.product.price|irt }}</span>
           <span>رقیب {{ r.price|irt }}</span>

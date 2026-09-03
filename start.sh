@@ -9,5 +9,5 @@ mkdir -p data
 .venv/bin/python manage.py migrate --noinput
 .venv/bin/python manage.py load_backup
 echo
-echo "TwinSight · محصول MT → http://127.0.0.1:8765/"
+echo "MTRadar → http://127.0.0.1:8765/"
 exec .venv/bin/python manage.py runserver 0.0.0.0:8765
