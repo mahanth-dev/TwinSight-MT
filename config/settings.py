@@ -22,7 +22,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    "tahlil.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -85,9 +85,17 @@ UPLOADS_ROOT = Path(
 )
 SQL_PATH = BACKUP_ROOT / "mysql" / "asarehsp_asaresp.sql"
 SITE_URL = "https://asarehsport.com"
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8765",
-    "http://127.0.0.1:8765",
+    origin.strip()
+    for origin in os.environ.get(
+        "CSRF_TRUSTED_ORIGINS",
+        "http://localhost:8765,http://127.0.0.1:8765,http://localhost,http://127.0.0.1",
+    ).split(",")
+    if origin.strip()
 ]
 LOGIN_URL = "/admin/login/"
 LOGIN_REDIRECT_URL = "/manage/"
